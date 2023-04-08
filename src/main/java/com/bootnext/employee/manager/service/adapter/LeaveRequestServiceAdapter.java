@@ -1,9 +1,13 @@
 package com.bootnext.employee.manager.service.adapter;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.modelmapper.ModelMapper;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 import com.bootnext.employee.manager.exception.InsufficientBalanceException;
@@ -21,6 +25,7 @@ public class LeaveRequestServiceAdapter implements LeaveRequestService {
 	private LeaveRequestRepository leaveRequestRepository;
 	private EmployeeRepository employeeRepository;
 	private ModelMapper modelMapper;
+	private JavaMailSender javaMailSender;
 
 	@Override
 	public LeaveRequestDTO applyLeave(LeaveRequestDTO leaveRequestDTO,String email) {
@@ -32,7 +37,15 @@ public class LeaveRequestServiceAdapter implements LeaveRequestService {
 			throw new InsufficientBalanceException("Insufficient Balance");
 		}
 		else {
+			
 			LeaveRequest save = this.leaveRequestRepository.save(leaveRequest);
+			SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
+			simpleMailMessage.setFrom("adnanghori12@gmail.com");
+			simpleMailMessage.setTo("adnanghori@zohomail.in");
+			simpleMailMessage.setText(leaveRequest.getReason());
+			simpleMailMessage.setSubject(employee.getEmployeeName()+" Has Requested Leave For " + leaveRequest.getNumberOfDays() );
+			 
+			javaMailSender.send(simpleMailMessage);
 			return this.modelMapper.map(save, LeaveRequestDTO.class);
 		}
 
@@ -44,6 +57,27 @@ public class LeaveRequestServiceAdapter implements LeaveRequestService {
 		List<LeaveRequest> leaveRequests = this.leaveRequestRepository.getLeaveRequestByEmployeeId(employeeID);
 		return leaveRequests.stream().map(leaveRequestDTO -> this.modelMapper.map(leaveRequestDTO, LeaveRequestDTO.class) ).collect(Collectors.toList());
 
+	}
+
+	@Override
+	public List<LeaveRequest> getAllLeaveRequests() {
+		
+		return this.leaveRequestRepository.getAllLeaveRequests();		
+	}
+
+	@Override
+	public boolean approveLeave(Long requestID) {
+		 LeaveRequest leaveRequest = this.leaveRequestRepository.findById(requestID).get();
+		 leaveRequest.setStatus("Approved");
+		 this.leaveRequestRepository.save(leaveRequest);
+		 
+			SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
+			simpleMailMessage.setFrom("adnanghori12@gmail.com");
+			simpleMailMessage.setTo(leaveRequest.getEmployee().getEmployeeEmail());
+			simpleMailMessage.setText("Dear "+ leaveRequest.getEmployee().getEmployeeName() + "Your Leave Request For Days " + leaveRequest.getNumberOfDays() + "Has Been Approved");
+			simpleMailMessage.setSubject("Leave Request Approved");
+			javaMailSender.send(simpleMailMessage);
+		return true;
 	}
 
 }

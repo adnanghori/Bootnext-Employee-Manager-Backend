@@ -1,10 +1,9 @@
 package com.bootnext.employee.manager.service.adapter;
 
-import java.util.Optional;
-
 import org.modelmapper.ModelMapper;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.bootnext.employee.manager.exception.UserExistException;
 import com.bootnext.employee.manager.model.Role;
@@ -14,6 +13,7 @@ import com.bootnext.employee.manager.repository.RoleRepository;
 import com.bootnext.employee.manager.repository.UserRepository;
 import com.bootnext.employee.manager.service.UserService;
 import com.bootnext.employee.manager.utility.AppConstants;
+import com.bootnext.employee.manager.utility.FileUpload;
 
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -26,7 +26,7 @@ public class UserServiceAdapter implements UserService {
 	private RoleRepository roleRepository;
 	private UserRepository userRepository;
 	private BCryptPasswordEncoder bCryptPasswordEncoder;
-	
+	private FileUpload fileUpload;
 	@Override
 	public UserDTO createAdminUser(UserDTO userDTO) {
 		User user = this.modelMapper.map(userDTO, User.class);
@@ -57,6 +57,22 @@ public class UserServiceAdapter implements UserService {
 	public User getUser(String name) {
 		User user = this.userRepository.findByEmail(name).get();
 		return user;
+	}
+
+	@Override
+	public boolean upload(MultipartFile file) {
+		
+		return false;
+	}
+
+	@Override
+	public UserDTO createManager(@Valid UserDTO userDTO) {
+		User user = this.modelMapper.map(userDTO, User.class);
+		user.setRawPassword(userDTO.getPassword());
+		user.setUserPassword(this.bCryptPasswordEncoder.encode(userDTO.getPassword()));
+		Role role = this.roleRepository.findById(AppConstants.ROLE_MANAGER).get();
+		user.getRole().add(role);
+		return this.modelMapper.map(this.userRepository.save(user), UserDTO.class);
 	}
 
 }

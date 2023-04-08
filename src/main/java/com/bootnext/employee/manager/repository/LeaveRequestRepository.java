@@ -15,4 +15,9 @@ public interface LeaveRequestRepository extends JpaRepository<LeaveRequest, Long
 	@Transactional
 	@Query(value = "Select * FROM leave_request WHERE employee_employeeid = ?1",nativeQuery = true)
 	public List<LeaveRequest> getLeaveRequestByEmployeeId(Long employeeeId);
+	
+	@Modifying 
+	@Transactional
+	@Query(value =  "Select * FROM leave_request WHERE status= 'Pending' ",nativeQuery = true)
+	public List<LeaveRequest> getAllLeaveRequests();
 }

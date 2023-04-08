@@ -33,6 +33,7 @@ public class User implements UserDetails{
 	private String userPassword;
 	private String email;
 	private String rawPassword;
+	private String imageName;
 	@ManyToMany(cascade = CascadeType.ALL,fetch = FetchType.EAGER)
 	@JoinTable(
 	name = "user_role",

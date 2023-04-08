@@ -30,5 +30,10 @@ public class UserController {
 		UserDTO employeeUser = this.userService.createEmployeeUser(userDTO);
 		return new ResponseEntity<UserDTO>(employeeUser,HttpStatus.CREATED);
 	}
+	@PostMapping("/create-manager")
+	public ResponseEntity<UserDTO> createManager(@Valid @RequestBody UserDTO userDTO){
+		UserDTO manager =  this.userService.createManager(userDTO);
+		return new ResponseEntity<UserDTO>(manager,HttpStatus.CREATED);
+	}
 
 }
