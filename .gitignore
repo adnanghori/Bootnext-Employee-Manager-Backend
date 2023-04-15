@@ -33,3 +33,4 @@ build/
 .vscode/
 ### Ignore env File ###
 src/main/resources/env.properties
+.DS_Store
