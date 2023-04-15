@@ -9,10 +9,6 @@ import lombok.AllArgsConstructor;
 
 @SpringBootApplication @AllArgsConstructor
 public class BootnextEmployeeManagerApplication {
-
-
-
-
 	public static void main(String[] args) {
 		SpringApplication.run(BootnextEmployeeManagerApplication.class, args);
 	}
