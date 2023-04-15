@@ -15,4 +15,6 @@ public interface LeaveRequestService {
 
 	boolean approveLeave(Long requestID);
 
+	boolean rejectLeaveRequest(Long requestID);
+	
 }

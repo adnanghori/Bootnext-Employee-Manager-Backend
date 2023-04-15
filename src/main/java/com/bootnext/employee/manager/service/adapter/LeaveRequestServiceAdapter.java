@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.modelmapper.ModelMapper;
+import org.springframework.core.env.Environment;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
@@ -26,26 +27,28 @@ public class LeaveRequestServiceAdapter implements LeaveRequestService {
 	private EmployeeRepository employeeRepository;
 	private ModelMapper modelMapper;
 	private JavaMailSender javaMailSender;
-
+	private Environment environment;
 	@Override
 	public LeaveRequestDTO applyLeave(LeaveRequestDTO leaveRequestDTO,String email) {
 		LeaveRequest leaveRequest = this.modelMapper.map(leaveRequestDTO, LeaveRequest.class);
 		Employee employee = this.employeeRepository.findByEmployeeEmail(email).get();
 		leaveRequest.setEmployee(employee);
 		leaveRequest.setStatus("Pending");
+		employee.setAvailableLeaves(employee.getAvailableLeaves()-leaveRequest.getNumberOfDays());
 		if(leaveRequest.getNumberOfDays()>employee.getAvailableLeaves()) {
 			throw new InsufficientBalanceException("Insufficient Balance");
 		}
 		else {
 			
 			LeaveRequest save = this.leaveRequestRepository.save(leaveRequest);
+			this.employeeRepository.save(employee);
 			SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
-			simpleMailMessage.setFrom("adnanghori12@gmail.com");
-			simpleMailMessage.setTo("adnanghori@zohomail.in");
+			simpleMailMessage.setFrom(this.environment.getProperty("spring.mail.username")); // company mail address
+			simpleMailMessage.setTo("adnanghori@zohomail.in");// manager mail address
 			simpleMailMessage.setText(leaveRequest.getReason());
 			simpleMailMessage.setSubject(employee.getEmployeeName()+" Has Requested Leave For " + leaveRequest.getNumberOfDays() );
 			 
-			javaMailSender.send(simpleMailMessage);
+			this.javaMailSender.send(simpleMailMessage);
 			return this.modelMapper.map(save, LeaveRequestDTO.class);
 		}
 
@@ -79,5 +82,21 @@ public class LeaveRequestServiceAdapter implements LeaveRequestService {
 			javaMailSender.send(simpleMailMessage);
 		return true;
 	}
+
+	@Override
+	public boolean rejectLeaveRequest(Long requestID) {
+		LeaveRequest leaveRequest = this.leaveRequestRepository.findById(requestID).get();
+		 leaveRequest.setStatus("Rejected");
+		 this.leaveRequestRepository.save(leaveRequest);
+		 
+			SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
+			simpleMailMessage.setFrom(this.environment.getProperty("spring.mail.username"));
+			simpleMailMessage.setTo(leaveRequest.getEmployee().getEmployeeEmail());
+			simpleMailMessage.setText("Dear "+ leaveRequest.getEmployee().getEmployeeName() + "Your Leave Request For Days " + leaveRequest.getNumberOfDays() + "Has Been Rejected");
+			simpleMailMessage.setSubject("Leave Request Rejected");
+			this.javaMailSender.send(simpleMailMessage);
+		return true;
+	}
+
 
 }

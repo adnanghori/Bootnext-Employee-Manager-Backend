@@ -44,9 +44,15 @@ public class LeaveRequestController {
 		return new ResponseEntity<List<LeaveRequest>>(allLeaveRequests,HttpStatus.OK);
 	}
 	
-	@PutMapping("/{requestID}")
+	@PutMapping("/approve/{requestID}")
 	public ResponseEntity<API_Response> approveLeaveRequest(@PathVariable Long requestID){
 		this.leaveRequestService.approveLeave(requestID);
 		 return new ResponseEntity<API_Response>(API_Response.builder().message("Approved").status(true).build(),HttpStatus.OK);
 	}
+	@PutMapping("/reject/{requestID}")
+	public ResponseEntity<API_Response> rejectLeaveRequest(@PathVariable Long requestID){
+		this.leaveRequestService.rejectLeaveRequest(requestID);
+		return new ResponseEntity<API_Response>(API_Response.builder().message("Rejected").status(false).build(),HttpStatus.OK);
+	}
+	
 }

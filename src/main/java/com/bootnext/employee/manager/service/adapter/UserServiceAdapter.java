@@ -50,6 +50,7 @@ public class UserServiceAdapter implements UserService {
 		user.setUserPassword(this.bCryptPasswordEncoder.encode(userDTO.getPassword()));
 		Role role = this.roleRepository.findById(AppConstants.ROLE_EMPLOYEE).get();
 		user.getRole().add(role);
+		user.setImageName("default.png");
 		return this.modelMapper.map(this.userRepository.save(user), UserDTO.class);
 	}
 

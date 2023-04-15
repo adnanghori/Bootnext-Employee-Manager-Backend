@@ -36,8 +36,7 @@ public class EmployeeServiceAdapter implements EmployeeService {
 	@Override
 	public EmployeeDTO addEmployee(EmployeeDTO employeeDTO) {
 		Employee employee = this.modelMapper.map(employeeDTO, Employee.class);
-		employee.setTotalLeaves(0);
-		employee.setAvailableLeaves(0);
+		employee.setAvailableLeaves(employee.getTotalLeaves());
 		return this.modelMapper.map(this.employeeRepository.save(employee), EmployeeDTO.class);
 	}
 	@Override

@@ -1,7 +1,4 @@
 package com.bootnext.employee.manager.payload;
-
-
-
 import java.util.Date;
 
 import jakarta.validation.constraints.Email;
